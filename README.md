@@ -1,7 +1,7 @@
 # RPG ARCADE
 |  |  |
 |:-------------:|:------------------------------------------------------------:|
-|  <img src="" width="150px"></br> 
+|  <img src="logo_acarde.png" width="150px"></br> 
 
 ## Sobre o Projeto / EM DESENVOLVIMENTO
 
@@ -49,7 +49,7 @@ Espero que você se divirta jogando e explorando este projeto tanto quanto eu me
 <!-- Coloque seu nome, uma foto sua e uma pequena bio sobre você na seguinte tabela: -->
 |  |  |
 |:-------------:|:------------------------------------------------------------:|
-|  <img src="EU2.jpg" width="150px"></br> **Alan Bruno Morais Costa** | 
+|  <img src="_MG_2469.jpg" width="150px"></br> **Alan Bruno Morais Costa** | 
 Me chamo Alan, sou estudante de Ciências da Computação na Universidade Federal de Mato Grosso (UFMT) e estou participando de um curso oferecido pela Cyber-edux. Neste repositório, apresento o Cardy, um sistema inovador de gerenciamento de tarefas e estudos projetado para melhorar a organização e eficiência de estudantes e profissionais.  |
 
 - **Email:** alanbrunomoraescosta18@hotmail.com
