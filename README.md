@@ -27,7 +27,7 @@ Para este projeto foi usada as seguintes tecnologias.
 
 <div style="display: inline_block" align= "center"><br>
 <img height="20" width="80" src="https://img.shields.io/badge/Python-FFD43B?style=plastic&logo=python&logoColor=blue" alt="Python">
-<img height="20" width="80" src="https://img.shields.io/badge/Pygame-45cf8e?style=plastic&logo=python&logoColor=blue" alt="Pygame">
+<img height="20" width="80" src="https://img.shields.io/badge/Pygame-e79c18?style=plastic&logo=python&logoColor=blue" alt="Pygame">
 <img height="20" width="80" src="https://img.shields.io/badge/Tiled-Map-3fed6d?style=plastic&logoColor=blue" alt="Pygame">
 </div>
 
