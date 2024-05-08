@@ -31,7 +31,7 @@ class Mago:
         
     def carrega_sprites(self):
         self.colisor = pygame.transform.scale(pygame.image.load(
-            'sprite_colisor_mago/1.png').convert_alpha(), (100, 100))
+            'sprite_colisor_mago/1.png').convert_alpha(), (100, 90))
         self.sprite_parado_frente = [pygame.transform.scale(pygame.image.load(
             f'parado_f/parado ({i+1}).png').convert_alpha(), (100, 100)) for i in range(17)]
         self.sprite_parado_tras = [pygame.transform.scale(pygame.image.load(
@@ -62,7 +62,7 @@ class Mago:
         self.ataque1_rec.x = self.posicao_ataquex
         self.ataque1_rec.y = self.posicao_ataquey
 
-    def movimentacao2(self):
+    def movimentacao(self):
         global EM_CIMA_DO_BLOCO, VELOCIDADE, ACELERACAO_Y, PULANDO, ALTURA_MAX_PULO, EM_CIMA_PISOS_ELEVADOS
         keys = pygame.key.get_pressed()
 
@@ -85,34 +85,7 @@ class Mago:
             self.ataque()
 
 
-    def movimentacao(self):
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_RIGHT]:  # anda pra frente
-            self.x += VELOCIDADE
-            self.andando_f = True
-            self.andando_t = False
-            self.ultima_direcao = 'frente'
-        else:
-            self.andando_f = False
-
-        if keys[pygame.K_LEFT]:
-            self.x -= VELOCIDADE  # anda pra tras
-            self.andando_t = True
-            self.andando_f = False
-            self.ultima_direcao = 'tras'
-        else:
-            self.andando_t = False
-
-        if keys[pygame.K_UP] and not self.pulando:  # pulo
-            global ACELERACAO
-            #self.pulando = True
-           # self.velocidade_pulo = - ALTURA_DO_PULO
-            ACELERACAO -=30
-        if keys[pygame.K_DOWN]:
-            self.y += VELOCIDADE
-
-        if keys[pygame.K_SPACE] and not self.atacando:
-            self.ataque()
+   
 
     def update_ataque(self):
         if self.atacando:
@@ -175,7 +148,7 @@ class Lutador:
     def carrega_sprites(self):
         global SIZE_LUTADOR
         self.sprite_colisor_guerreiro = pygame.transform.scale(pygame.image.load(
-            f'guerreiro_1/g_andando (1).png').convert_alpha(), (120, 100))
+            f'guerreiro_1/g_andando (1).png').convert_alpha(), (80, 90))
         self.sprite_anda_f = [pygame.transform.scale(pygame.image.load(
             f'g_correndo_t/guerreiro ({i+1}).png').convert_alpha(), SIZE_LUTADOR) for i in range(9)]
         self.sprite_anda_t = [pygame.transform.scale(pygame.image.load(
@@ -274,25 +247,25 @@ class inimigo2:
         self.rec = None  # Inicializamos o retângulo como None
         self.rec_ataque_f = None
         self.rec_ataque_t = None
-
+        self.borda_vida = None
+        self.bloco_vida =  None
         self.sofre_dano_sprite = None
 
     def carrega_sprites(self):
         self.sprite_colisor = pygame.transform.scale(pygame.image.load(
-            f'guerreiro_1/g_andando (1).png').convert_alpha(), (120, 100))
-        self.sprite_anda_t = [pygame.transform.scale(pygame.image.load(
-            f'correndo inimigo 2/corre ({i+1}).png').convert_alpha(), (100, 100)) for i in range(4)]
-        self.sprite_anda_f = [pygame.transform.scale(pygame.image.load(
-            f'correndo inimigo 2 f/corre ({i+1}).png').convert_alpha(), (100, 100)) for i in range(4)]
-        self.sprite_ataque_t = [pygame.transform.scale(pygame.image.load(
-            f'ataque inimigo 2 f/ataque ({i+1}).png').convert_alpha(), (100, 100)) for i in range(8)]
-        self.sprite_ataque_f = [pygame.transform.scale(pygame.image.load(
-            f'ataque inimigo 2/ataque ({i+1}).png').convert_alpha(), (100, 100)) for i in range(8)]
-
+            f'sprites/guerreiro_1/g_andando (1).png').convert_alpha(), (120, 100))
+        self.sprite_anda_t = [pygame.transform.scale(pygame.image.load(f'sprites/correndo inimigo 2/corre ({i+1}).png').convert_alpha(), (100, 100)) for i in range(4)]
+        self.sprite_anda_f = [pygame.transform.scale(pygame.image.load(f'sprites/correndo inimigo 2 f/corre ({i+1}).png').convert_alpha(), (100, 100)) for i in range(4)]
+        self.sprite_ataque_t = [pygame.transform.scale(pygame.image.load(f'sprites/ataque inimigo 2 f/ataque ({i+1}).png').convert_alpha(), (150, 150)) for i in range(8)]
+        self.sprite_ataque_f = [pygame.transform.scale(pygame.image.load(f'sprites/ataque inimigo 2/ataque ({i+1}).png').convert_alpha(), (150, 150)) for i in range(8)]
+        self.borda_vida = pygame.transform.scale(pygame.image.load(
+            f'barra de vida inimigo/barra_de_vida_inimigo.jpg').convert_alpha(), (60, 20))
+        self.bloco_vida = pygame.transform.scale(pygame.image.load(
+            f'barra de vida inimigo/bloco vida (1).png').convert_alpha(), (17, 18))
     def retangulo(self):
         self.rec = self.sprite_colisor.get_rect()
-        self.rec_ataque_f = self.sprite_ataque_f
-        self.rec_ataque_t = self.sprite_anda_t
+        self.rec_ataque_f = self.sprite_ataque_f[0].get_rect()
+        self.rec_ataque_t = self.sprite_anda_t[0].get_rect()
 
     def carrega_posicao(self, x, y):
         self.rec.x = x
@@ -304,7 +277,6 @@ class inimigo2:
         self.rec_ataque_t.y = y
 
     def movimento(self):
-
         global VELOCIDADE_LUTADOR, POSICAO_INICIAL_X_INIMIGO2, ATACAR_MAGO
         if self.direcao == 'tras' and not self.atacar:
             self.x -= VELOCIDADE_LUTADOR

@@ -1,6 +1,7 @@
 import pygame
 import pytmx
 import time
+from carrega_sprites.desenha_na_tela import *
 from variaveis_gravidade_pulo import *
 from pygame.locals import *
 from pytmx.util_pygame import load_pygame
@@ -17,18 +18,27 @@ lutador = Lutador(POSICAO_LUTADOR_X, POSICAO_LUTADOR_Y, [], 100)
 lutador.carrega_sprites()
 lutador.criar_retangulo()
 
+inimigo = inimigo2(POS_INIMIGOX, POS_INIMIGOY, [], 100)
+inimigo.carrega_sprites()
+inimigo.retangulo()
+
 interface = Interface()
 interface.carrega_sprites()
-bloco_chao = 444
+
 
 def reseta_jogo():
-    global POSICAO_INICIAL_X, POSICAO_INICIAL_Y, POSICAO_LUTADOR_X_INICIAL, POSICAO_LUTADOR_Y_INICIAL, ESTADO_JOGO
+    global POSICAO_INICIAL_X, POSICAO_INICIAL_Y, POSICAO_LUTADOR_X_INICIAL, POSICAO_LUTADOR_Y_INICIAL, ESTADO_JOGO, POS_INIMIGOX, INIMIGO_VIVO, VIVO_INIMIGO
     mago.vida = 100
     lutador.vida = 100
+    inimigo.vida = 100
     mago.x = POSICAO_INICIAL_X
     mago.y = POSICAO_INICIAL_Y
     lutador.x = POSICAO_LUTADOR_X_INICIAL
     lutador.y = POSICAO_LUTADOR_Y_INICIAL
+    inimigo.x = POS_INIMIGOX
+    inimigo.y = POS_INIMIGOX
+    INIMIGO_VIVO =True
+    VIVO_INIMIGO = True
     ESTADO_JOGO = 'jogando'
     
 def desenha_mapa(surface, tm, offset_x, scale=0.5):
@@ -89,8 +99,7 @@ def colisao_pisos_elevados( tm, offset_x, scale=0.5):
             (rect.x * scale - offset_x), rect.y * scale, rect.width * scale, rect.height * scale)
         personagem_bottom = mago.rec.bottom
         bloco_top = scaled_rect.top
-        bloco_bottom = scaled_rect.bottom
-        personagem_top = mago.rec.top
+        
       
         if mago.rec.colliderect(scaled_rect):
                 if personagem_bottom > bloco_top:
@@ -98,24 +107,25 @@ def colisao_pisos_elevados( tm, offset_x, scale=0.5):
                     mago.y = mago.rec.y
                     ACELERACAO_Y = 5
                     PULANDO = False
-                    EM_CIMA_PISOS_ELEVADOS = False
+                    EM_CIMA_PISOS_ELEVADOS = True
            
 def colisao_pisos_baixos(surface,tm, offset_x, scale=0.5):
     global  ACELERACAO_Y,PULANDO, EM_CIMA_PISOS_ELEVADOS, BLOCO_CHAO
+    
     for rect in tm.piso_inicio_elevado:
         scaled_rect = pygame.Rect(
             (rect.x * scale - offset_x), rect.y * scale, rect.width * scale, rect.height * scale)
-        pygame.draw.rect(surface, (255,0,0), scaled_rect, 2)
-        pygame.draw.rect(surface, (255,0,0), mago.rec, 2)
+   
         if mago.rec.colliderect(scaled_rect):
            
             mago.rec.bottom= BLOCO_CHAO
             mago.y = mago.rec.y
             ACELERACAO_Y = 5
             PULANDO = False
-            
+            EM_CIMA_PISOS_ELEVADOS = False
+
 def colisao(tm, offset_x, scale=0.5):
-    global ACELERACAO_Y,PULANDO, EM_CIMA_PISOS_ELEVADOS, BLOCO_CHAO
+    global ACELERACAO_Y,PULANDO, EM_CIMA_PISOS_ELEVADOS, BLOCO_CHAO, ACELERACAO_Y_INIMIGO, ACELERACAO_Y_LUTADOR
     for rect in tm.colisor_pisos_chao:
         scaled_rect = pygame.Rect(
             (rect.x * scale - offset_x), rect.y * scale, rect.width * scale, rect.height * scale)
@@ -124,15 +134,20 @@ def colisao(tm, offset_x, scale=0.5):
             mago.rec.bottom = scaled_rect.top
             BLOCO_CHAO = scaled_rect.top
             mago.y = mago.rec.y
-            ACELERACAO_Y = 5
+            ACELERACAO_Y = 8
             PULANDO = False
-            EM_CIMA_PISOS_ELEVADOS = True
+            EM_CIMA_PISOS_ELEVADOS = False
+
         if lutador.rec.colliderect(scaled_rect):
             lutador.rec.bottom = scaled_rect.top
             lutador.y = lutador.rec.y
-            ACELERACAO_Y = 5
-
-
+            ACELERACAO_Y_LUTADOR = 8
+            
+        if inimigo.rec.colliderect(scaled_rect):
+            inimigo.rec.bottom = scaled_rect.top
+            inimigo.y = inimigo.rec.y
+            ACELERACAO_Y_INIMIGO = 8
+            
 
 def limita_posicao_personagem(x, y, tm, window_width, window_height):
     # Calcula a largura máxima do mapa ajustada pela escala
@@ -150,15 +165,21 @@ def anima_mago(sprites_mago):
     return index_m
 
 def gravidade(clock):
-    global F,T,G,ACELERACAO_Y
-    T = clock.get_time()/ 1000
+    global F,T,G,ACELERACAO_Y, ACELERACAO_Y_INIMIGO, ACELERACAO_Y_LUTADOR
+    T = clock.get_time()/ 1000.0
     F = G*T
-    ACELERACAO_Y += F 
-    mago.y += ACELERACAO_Y 
-    lutador.y += ACELERACAO_Y
+    if not PULANDO:
+        ACELERACAO_Y += F
+    else:
+        ACELERACAO_Y = max(ACELERACAO_Y, -15)
+    mago.y += ACELERACAO_Y
+    ACELERACAO_Y_INIMIGO += F
+    ACELERACAO_Y_LUTADOR += F
+    lutador.y += ACELERACAO_Y_LUTADOR
+    inimigo.y += ACELERACAO_Y_INIMIGO
 
 def barra_vida_mago(screen):
-            
+            global ESTADO_JOGO
             screen.blit(mago.borda_geral,(10,10))
             if mago.vida == 100:
                 screen.blit(mago.bloco_vida,(15,30))
@@ -278,9 +299,32 @@ def barra_vida_lutador(screen):
         elif lutador.vida < 0:
             VIVO_INIMIGO = False
 
+def barra_de_vida_inimigo(screen):
+    global INIMIGO_VIVO
+    if INIMIGO_VIVO:
+        
+        screen.blit(inimigo.borda_vida,(inimigo.x-(mago.x-100), inimigo.y-15))
+        if inimigo.vida == 100:
+            screen.blit(inimigo.bloco_vida,(inimigo.x-(mago.x-90), inimigo.y-16))
+            screen.blit(inimigo.bloco_vida,(inimigo.x-(mago.x-107), inimigo.y-16))
+            screen.blit(inimigo.bloco_vida,(inimigo.x-(mago.x-124), inimigo.y-16))
+            screen.blit(inimigo.bloco_vida,(inimigo.x-(mago.x-141), inimigo.y-16))
+        elif inimigo.vida == 70:
+            screen.blit(inimigo.bloco_vida,(inimigo.x-(mago.x-90), inimigo.y-16))
+            screen.blit(inimigo.bloco_vida,(inimigo.x-(mago.x-107), inimigo.y-16))
+            screen.blit(inimigo.bloco_vida,(inimigo.x-(mago.x-124), inimigo.y-16))
+        elif inimigo.vida == 40:
+            screen.blit(inimigo.bloco_vida,(inimigo.x-(mago.x-90), inimigo.y-16))
+            screen.blit(inimigo.bloco_vida,(inimigo.x-(mago.x-107), inimigo.y-16))
+        elif inimigo.vida == 10:
+            screen.blit(inimigo.bloco_vida,(inimigo.x-(mago.x-90), inimigo.y-11))
+        elif inimigo.vida < 0:
+            INIMIGO_VIVO = False
+
 def anima_lutador(sprite):
     index = (FRAME//10) % len(sprite)
     return index
+
 
 def anima_lutador_ataque(sprite):
     index = (FRAME//3) % len(sprite)
@@ -291,9 +335,21 @@ def anima_ataque_mago(sprite_ataque):
     return index
 
 def combate(surface):
-    global DANO, DANO_MAGICO_1, LUTADOR_SOFREU_DANO, VIVO_INIMIGO
+    global DANO, DANO_MAGICO_1, LUTADOR_SOFREU_DANO, VIVO_INIMIGO,INIMIGO_VIVO, SOFREU_DANO_INIMIGO,BLOCO_CHAO, PULANDO
     tempo_atual = time.time()
     pygame.draw.rect(surface, (255,0,0), lutador.rec, 2)
+    pygame.draw.rect(surface, (255,0,0), inimigo.rec, 2)
+    if mago.y >= BLOCO_CHAO:
+        PULANDO =False
+    if inimigo.rec.colliderect(mago.rec):
+        inimigo.atacar = True
+    if mago.ataque1_rec.colliderect(inimigo.rec):
+        if INIMIGO_VIVO and mago.atacando:
+            inimigo.vida -= DANO_MAGICO_1
+            print(inimigo.vida)
+            SOFREU_DANO_INIMIGO =  True
+        mago.reseta_ataque()
+
     if lutador.rec.colliderect(mago.rec):
         lutador.atacar = True
     if mago.ataque1_rec.colliderect(lutador.rec):
@@ -305,10 +361,13 @@ def combate(surface):
         if VIVO_INIMIGO:
             mago.vida -= DANO
             mago.ultimo_dano = tempo_atual
-   
+    if inimigo.rec_ataque_t.colliderect(mago.rec) and inimigo.atacar and (tempo_atual - mago.ultimo_dano) > mago.cooldown:
+        if INIMIGO_VIVO:
+            mago.vida -= DANO
+            mago.ultimo_dano = tempo_atual
 
 def main():
-    global clock, G, F,T, ACELERACAO_Y, VELOCIDADE,PULANDO, ALTURA_MAX_PULO, TARGET_FPS, FRAME, VIVO_INIMIGO, LUTADOR_SOFREU_DANO
+    global POS_INIMIGOY, POS_INIMIGOX, clock, G, F,T, ACELERACAO_Y, VELOCIDADE,PULANDO, ALTURA_MAX_PULO, FRAME, VIVO_INIMIGO, LUTADOR_SOFREU_DANO,POS_INIMIGOY, ESTADO_JOGO
     tm = carrega_mapa('teste3.tmx')
     clock = pygame.time.Clock()
   
@@ -316,89 +375,81 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
+        if ESTADO_JOGO == 'jogando':
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_UP] and not PULANDO:  
+                ACELERACAO_Y = -15
+                PULANDO = True
 
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_UP] and not PULANDO:  
-            ACELERACAO_Y = -15
-            PULANDO = True
-        if PULANDO and mago.y <= ALTURA_MAX_PULO and not EM_CIMA_PISOS_ELEVADOS:
-            ACELERACAO_Y = 3
-        if EM_CIMA_PISOS_ELEVADOS and mago.y <= 200:
-            ACELERACAO_Y = 3
-
-        mago.movimentacao2()
-
-        screen.fill((0, 0, 0))
-        desenha_mapa(screen, tm, mago.x )
-       
-        gravidade(clock)
-        POSICAO_X, POSICAO_Y = limita_posicao_personagem(mago.x, mago.y, tm, screen.get_width(), screen.get_height())
-        mago.x = POSICAO_X
-        mago.y = POSICAO_Y
-        POSICAO_LUTADOR_X = lutador.movimento()
-        lutador.y = POSICAO_LUTADOR_Y
-        lutador.x = POSICAO_LUTADOR_X
-
-        lutador.carregar_posicao(lutador.x-(mago.x-100), lutador.y)
-
-        mago.carregar_posicao( mago.x, mago.y)
-        colisao(tm, mago.x)
-        colisao_pisos_elevados(tm, mago.x)
-        colisao_pisos_baixos(screen,tm, mago.x)
-        combate(screen)
-        if mago.update_ataque():
-                index_ataque1 = anima_ataque_mago(mago.ataque1)
-                screen.blit(mago.ataque1[index_ataque1], (mago.posicao_ataquex, mago.posicao_ataquey ))
-
-        if mago.andando_f:
-            mago.ultima_direcao = 'frente'
+            if PULANDO and mago.y <= ALTURA_MAX_PULO and not EM_CIMA_PISOS_ELEVADOS:
+                ACELERACAO_Y = 8
+            if EM_CIMA_PISOS_ELEVADOS and mago.y <= 100:
+                ACELERACAO_Y = 8
             
-            INDEX_MAGO = anima_mago(mago.sprite_andando_frente)
-            screen.blit(mago.sprite_andando_frente[INDEX_MAGO], (POSICAO_X_PERSONAGEM, mago.y))
-    
-        if mago.andando_t:
-            mago.ultima_direcao = 'tras'
-            INDEX_MAGO = anima_mago(mago.sprite_anda_tras)
-            screen.blit(mago.sprite_anda_tras[INDEX_MAGO], (POSICAO_X_PERSONAGEM, mago.y))
+            mago.movimentacao()
 
-        if not mago.andando_t and not mago.andando_f:
-            if mago.ultima_direcao == 'frente':
-                INDEX_MAGO = anima_mago(mago.sprite_parado_frente)
-                screen.blit(mago.sprite_parado_frente[INDEX_MAGO], (POSICAO_X_PERSONAGEM, mago.y))
-            elif mago.ultima_direcao == 'tras':
-                INDEX_MAGO = anima_mago(mago.sprite_parado_tras)
-                screen.blit(mago.sprite_parado_tras[INDEX_MAGO], (POSICAO_X_PERSONAGEM, mago.y))
+            screen.fill((0, 0, 0))
+            desenha_mapa(screen, tm, mago.x )
+        
+            x = inimigo.movimento()
+            inimigo.x = x
+            inimigo.y = POS_INIMIGOY
+            POSICAO_LUTADOR_X = lutador.movimento()
+            lutador.y = POSICAO_LUTADOR_Y
+            lutador.x = POSICAO_LUTADOR_X
+            gravidade(clock)
+            POSICAO_X, POSICAO_Y = limita_posicao_personagem(mago.x, mago.y, tm, screen.get_width(), screen.get_height())
+            mago.x = POSICAO_X
+            mago.y = POSICAO_Y
+            mago.carregar_posicao( mago.x, mago.y)
+            lutador.carregar_posicao(lutador.x-(mago.x-100), lutador.y+10)
+            inimigo.carrega_posicao(inimigo.x-(mago.x-100), lutador.y)
+            colisao(tm, mago.x)
+            colisao_pisos_elevados(tm, mago.x)
+            colisao_pisos_baixos(screen,tm, mago.x)
+            combate(screen)
+            
+            carrega_imagens_mago(screen, mago, POSICAO_X_PERSONAGEM, FRAME)
+            carrega_imagens_lutador(screen, mago, lutador, FRAME,VIVO_INIMIGO, LUTADOR_SOFREU_DANO)
+            LUTADOR_SOFREU_DANO = False
+            carrega_imagens_inimigo(screen, mago, inimigo, FRAME, INIMIGO_VIVO)
 
-        if VIVO_INIMIGO:
-            if (lutador.x-(mago.x)) > 250 and not lutador.atacar:
-                lutador.direcao = 'tras'
-                index_lutador = anima_lutador(lutador.sprite_anda_f)
-                screen.blit(lutador.sprite_anda_f[index_lutador], (lutador.x-(mago.x-50), lutador.y))
-            elif (lutador.x-(mago.x)) < 250 and not lutador.atacar:
-                lutador.direcao = 'frente'
-                index_lutador = anima_lutador(lutador.sprite_anda_f)
-                screen.blit(lutador.sprite_anda_t[index_lutador], (lutador.x-(mago.x-50), lutador.y))
-            if lutador.atacar:
-                index_lutador = anima_lutador_ataque(lutador.sprite_ataque_f)
-                if lutador.direcao == 'frente':
-                    screen.blit(lutador.sprite_ataque_f[index_lutador], (lutador.x-(mago.x-100), lutador.y-5))
-                elif lutador.direcao == 'tras':
-                    screen.blit(lutador.sprite_ataque_t[index_lutador], (lutador.x-(mago.x-100), lutador.y-5))
-                lutador.atacar = False
-                
-            if LUTADOR_SOFREU_DANO:
-                LUTADOR_SOFREU_DANO = False
-                if lutador.direcao == 'tras':
-                    screen.blit(lutador.sofre_dano_sprite[1], (lutador.x-(mago.x-150), lutador.y+10))
-                elif lutador.direcao == 'frente':
-                    screen.blit(lutador.sofre_dano_sprite[0], (lutador.x-(mago.x-100), lutador.y+10))
+            barra_vida_lutador(screen)
+            barra_vida_mago(screen)
+            barra_de_vida_inimigo(screen)
+            FRAME += 1
+            
 
-        barra_vida_lutador(screen)
-        barra_vida_mago(screen)
-        FRAME += 1
+        elif ESTADO_JOGO == 'GAMEOVER':
+            screen.blit(interface.gameover, (0,0))
+            screen.blit(interface.recomecar, (POS_RECOMECAR[0],POS_RECOMECAR[1]))
+            interface.retangulo()
+            interface.lugar()
+            if pygame.mouse.get_pressed()[0]:
+                pos = pygame.mouse.get_pos()
+                if interface.recomecar_rec.collidepoint(pos):
+                    reseta_jogo()
+
+        elif ESTADO_JOGO == 'INICIAR':
+
+            screen.blit(interface.comecar, (POS_COMECAR[0],POS_COMECAR[1]))
+            screen.blit(interface.sair, (POS_SAIR[0], POS_SAIR[1]))
+            interface.retangulo()
+            interface.lugar()
+            pygame.draw.rect(screen, (255, 0,0), interface.sair_rec, 2)
+            pygame.draw.rect(screen, (255, 0,0), interface.comecar_rec, 2)
+            
+            
+            if pygame.mouse.get_pressed()[0]:
+                pos = pygame.mouse.get_pos()
+                if interface.comecar_rec.collidepoint(pos):
+                    reseta_jogo()
+                    
+                if interface.sair_rec.collidepoint(event.pos):
+                    pygame.quit()
+                    return
         pygame.display.update()
         clock.tick(60)
-
 if __name__ == "__main__":
     main()
 
