@@ -31,25 +31,25 @@ class Mago:
         
     def carrega_sprites(self):
         self.colisor = pygame.transform.scale(pygame.image.load(
-            'sprite_colisor_mago/1.png').convert_alpha(), (100, 90))
+            'sprites/sprite_colisor_mago/1.png').convert_alpha(), (100, 90))
         self.sprite_parado_frente = [pygame.transform.scale(pygame.image.load(
-            f'parado_f/parado ({i+1}).png').convert_alpha(), (100, 100)) for i in range(17)]
+            f'sprites/parado_f/parado ({i+1}).png').convert_alpha(), (100, 100)) for i in range(17)]
         self.sprite_parado_tras = [pygame.transform.scale(pygame.image.load(
-            f'mago_parado_t/{i+1}.png').convert_alpha(), (100, 100)) for i in range(8)]
+            f'sprites/mago_parado_t/{i+1}.png').convert_alpha(), (100, 100)) for i in range(8)]
         self.sprite_andando_frente = [pygame.transform.scale(pygame.image.load(
-            f'anda_mago_f/frente ({i+1}).png').convert_alpha(), (100, 100)) for i in range(8)]
+            f'sprites/anda_mago_f/frente ({i+1}).png').convert_alpha(), (100, 100)) for i in range(8)]
         self.sprite_anda_tras = [pygame.transform.scale(pygame.image.load(
-            f'anda_mago_t/frente ({i+1}).png').convert_alpha(), (100, 100)) for i in range(8)]
+            f'sprites/anda_mago_t/frente ({i+1}).png').convert_alpha(), (100, 100)) for i in range(8)]
 
         self.bloco_vida = pygame.transform.scale(pygame.image.load(
-            f'barra_vida/bloco vida (16).png').convert_alpha(), (17, 18))
+            f'sprites/barra_vida/bloco vida (16).png').convert_alpha(), (17, 18))
         self.borda_geral = pygame.transform.scale(pygame.image.load(
-            f'barra_vida/borda_barra.png').convert_alpha(), (250, 50))
+            f'sprites/barra_vida/borda_barra.png').convert_alpha(), (250, 50))
         self.borda_maior = pygame.transform.scale(pygame.image.load(
-            f'barra_vida/borda_gui.png').convert_alpha(), (120, 100))
+            f'sprites/barra_vida/borda_gui.png').convert_alpha(), (120, 100))
 
         self.ataque1 = [pygame.transform.scale(pygame.image.load(
-            f'ataque1_mago/15 ({i+1}).png').convert_alpha(), (140, 140)) for i in range(15)]
+            f'sprites/ataque1_mago/15 ({i+1}).png').convert_alpha(), (140, 140)) for i in range(15)]
 
     def criar_retangulo(self):
         # Criamos o retângulo a partir do primeiro sprite
@@ -148,21 +148,21 @@ class Lutador:
     def carrega_sprites(self):
         global SIZE_LUTADOR
         self.sprite_colisor_guerreiro = pygame.transform.scale(pygame.image.load(
-            f'guerreiro_1/g_andando (1).png').convert_alpha(), (80, 90))
+            f'sprites/guerreiro_1/g_andando (1).png').convert_alpha(), (80, 90))
         self.sprite_anda_f = [pygame.transform.scale(pygame.image.load(
-            f'g_correndo_t/guerreiro ({i+1}).png').convert_alpha(), SIZE_LUTADOR) for i in range(9)]
+            f'sprites/g_correndo_t/guerreiro ({i+1}).png').convert_alpha(), SIZE_LUTADOR) for i in range(9)]
         self.sprite_anda_t = [pygame.transform.scale(pygame.image.load(
-            f'g_correndo_f/guerreiro ({i+1}).png').convert_alpha(), SIZE_LUTADOR) for i in range(9)]
+            f'sprites/g_correndo_f/guerreiro ({i+1}).png').convert_alpha(), SIZE_LUTADOR) for i in range(9)]
         self.sprite_ataque_f = [pygame.transform.scale(pygame.image.load(
-            f'ataque_g_f/1 ({i+1}).png').convert_alpha(), SIZE_LUTADOR) for i in range(12)]
+            f'sprites/ataque_g_f/1 ({i+1}).png').convert_alpha(), SIZE_LUTADOR) for i in range(12)]
         self.sprite_ataque_t = [pygame.transform.scale(pygame.image.load(
-            f'ataque_g_t/1 ({i+1}).png').convert_alpha(), SIZE_LUTADOR) for i in range(12)]
+            f'sprites/ataque_g_t/1 ({i+1}).png').convert_alpha(), SIZE_LUTADOR) for i in range(12)]
         self.borda_vida = pygame.transform.scale(pygame.image.load(
-            f'barra de vida inimigo/barra_de_vida_inimigo.jpg').convert_alpha(), (60, 20))
+            f'sprites/barra de vida inimigo/barra_de_vida_inimigo.jpg').convert_alpha(), (60, 20))
         self.bloco_vida = pygame.transform.scale(pygame.image.load(
-            f'barra de vida inimigo/bloco vida (1).png').convert_alpha(), (17, 18))
+            f'sprites/barra de vida inimigo/bloco vida (1).png').convert_alpha(), (17, 18))
         self.sofre_dano_sprite = [pygame.transform.scale(pygame.image.load(
-            f'lutador sofre dano/sofredano{i+1}.png').convert_alpha(), SIZE_LUTADOR)for i in range(2)]
+            f'sprites/lutador sofre dano/sofredano{i+1}.png').convert_alpha(), SIZE_LUTADOR)for i in range(2)]
 
     def criar_retangulo(self):
         self.rec = self.sprite_colisor_guerreiro.get_rect()
@@ -208,13 +208,13 @@ class Interface:
     def carrega_sprites(self):
         global LARGURA, ALTURA, FONTE
         self.gameover = pygame.transform.scale(pygame.image.load(
-            f'tela GUI/tela de game over.png').convert_alpha(), (LARGURA, ALTURA))
+            f'sprites/tela GUI/tela de game over.png').convert_alpha(), (LARGURA, ALTURA))
         self.comecar = pygame.transform.scale(pygame.image.load(
-            f'tela GUI/comecar.png').convert_alpha(), FONTE)
+            f'sprites/tela GUI/comecar.png').convert_alpha(), FONTE)
         self.recomecar = pygame.transform.scale(pygame.image.load(
-            f'tela GUI/recomecar.png').convert_alpha(), FONTE)
+            f'sprites/tela GUI/recomecar.png').convert_alpha(), FONTE)
         self.sair = pygame.transform.scale(pygame.image.load(
-            f'tela GUI/SAIR.png').convert_alpha(), FONTE)
+            f'sprites/tela GUI/SAIR.png').convert_alpha(), FONTE)
 
     def retangulo(self):
         self.comecar_rec = self.comecar.get_rect()
@@ -259,9 +259,9 @@ class inimigo2:
         self.sprite_ataque_t = [pygame.transform.scale(pygame.image.load(f'sprites/ataque inimigo 2 f/ataque ({i+1}).png').convert_alpha(), (150, 150)) for i in range(8)]
         self.sprite_ataque_f = [pygame.transform.scale(pygame.image.load(f'sprites/ataque inimigo 2/ataque ({i+1}).png').convert_alpha(), (150, 150)) for i in range(8)]
         self.borda_vida = pygame.transform.scale(pygame.image.load(
-            f'barra de vida inimigo/barra_de_vida_inimigo.jpg').convert_alpha(), (60, 20))
+            f'sprites/barra de vida inimigo/barra_de_vida_inimigo.jpg').convert_alpha(), (60, 20))
         self.bloco_vida = pygame.transform.scale(pygame.image.load(
-            f'barra de vida inimigo/bloco vida (1).png').convert_alpha(), (17, 18))
+            f'sprites/barra de vida inimigo/bloco vida (1).png').convert_alpha(), (17, 18))
     def retangulo(self):
         self.rec = self.sprite_colisor.get_rect()
         self.rec_ataque_f = self.sprite_ataque_f[0].get_rect()

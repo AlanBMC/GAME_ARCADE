@@ -7,7 +7,7 @@ from pygame.locals import *
 from pytmx.util_pygame import load_pygame
 from classes import *
 from variaveis_global import *
-
+from fase2 import *
 pygame.init()
 screen = pygame.display.set_mode((1200, 600))
 mago = Mago(POSICAO_INICIAL_X, POSICAO_INICIAL_Y, [], 100)
@@ -53,6 +53,8 @@ def desenha_mapa(surface, tm, offset_x, scale=0.5):
                         tile = pygame.transform.scale(tile, (tw, th))
                         surface.blit(tile, ((x * tw) - offset_x, y * th))
 
+
+
 def carrega_mapa(filename):
     tm = load_pygame(filename)
 
@@ -89,8 +91,26 @@ def carrega_mapa(filename):
                                 tm.tileheight, tm.tilewidth, tm.tileheight)
             tm.piso_inicio_elevado.append(rect5)
 
-    
+    tm.portal = []
+    portal = tm.get_layer_by_name('portal')
+    for x, y, gid in portal:
+        if gid:
+            rect6 = pygame.Rect(x * tm.tilewidth, y *
+                                tm.tileheight, tm.tilewidth, tm.tileheight)
+            tm.portal.append(rect6)
+
     return tm
+
+
+
+def colide_portal(tm, offset_x, scale=0.5):
+    global  ACELERACAO_Y,PULANDO, EM_CIMA_PISOS_ELEVADOS, BLOCO_CHAO, PASSOU
+    for rect in tm.portal:
+        scaled_rect = pygame.Rect(
+            (rect.x * scale - offset_x), rect.y * scale, rect.width * scale, rect.height * scale)
+        if mago.rec.colliderect(scaled_rect):
+            PASSOU = True
+            
 
 def colisao_pisos_elevados( tm, offset_x, scale=0.5):
     global  ACELERACAO_Y,PULANDO, EM_CIMA_PISOS_ELEVADOS, BLOCO_CHAO
@@ -367,8 +387,12 @@ def combate(surface):
             mago.ultimo_dano = tempo_atual
 
 def main():
-    global POS_INIMIGOY, POS_INIMIGOX, clock, G, F,T, ACELERACAO_Y, VELOCIDADE,PULANDO, ALTURA_MAX_PULO, FRAME, VIVO_INIMIGO, LUTADOR_SOFREU_DANO,POS_INIMIGOY, ESTADO_JOGO
+    global PASSOU,POS_INIMIGOY, POS_INIMIGOX, clock, G, F,T, ACELERACAO_Y, VELOCIDADE,PULANDO, ALTURA_MAX_PULO, FRAME, VIVO_INIMIGO, LUTADOR_SOFREU_DANO,POS_INIMIGOY, ESTADO_JOGO
+    
+    
     tm = carrega_mapa('teste3.tmx')
+    
+    tm2 = carrega_mapa_fase2('mapa_fase2.tmx')
     clock = pygame.time.Clock()
   
     while True:
@@ -389,8 +413,15 @@ def main():
             mago.movimentacao()
 
             screen.fill((0, 0, 0))
-            desenha_mapa(screen, tm, mago.x )
-        
+           
+            if PASSOU:
+                desenha_mapa_fase2(screen, tm2, mago.x)
+                colisao_fase2(tm2, mago.x, mago)
+            
+            else:
+                desenha_mapa(screen, tm, mago.x )
+                colide_portal(tm, mago.x)
+            
             x = inimigo.movimento()
             inimigo.x = x
             inimigo.y = POS_INIMIGOY
@@ -404,10 +435,11 @@ def main():
             mago.carregar_posicao( mago.x, mago.y)
             lutador.carregar_posicao(lutador.x-(mago.x-100), lutador.y+10)
             inimigo.carrega_posicao(inimigo.x-(mago.x-100), lutador.y)
-            colisao(tm, mago.x)
-            colisao_pisos_elevados(tm, mago.x)
-            colisao_pisos_baixos(screen,tm, mago.x)
-            combate(screen)
+            if not PASSOU:
+                colisao(tm, mago.x)
+                colisao_pisos_elevados(tm, mago.x)
+                colisao_pisos_baixos(screen,tm, mago.x)
+                combate(screen)
             
             carrega_imagens_mago(screen, mago, POSICAO_X_PERSONAGEM, FRAME)
             carrega_imagens_lutador(screen, mago, lutador, FRAME,VIVO_INIMIGO, LUTADOR_SOFREU_DANO)
