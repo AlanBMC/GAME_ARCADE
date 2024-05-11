@@ -2,7 +2,7 @@
 LARGURA = 1200
 ALTURA = 600
 
-PASSOU = True
+FASE = ''
 G = 20
 F = 0
 ACELERACAO = 0

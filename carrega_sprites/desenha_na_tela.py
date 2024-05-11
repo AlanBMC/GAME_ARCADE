@@ -20,9 +20,9 @@ def anima_ataque_mago(sprite, frame):
 def anima_sprite_ataque2(sprite, frame):
     index = (frame //3) % len(sprite)
     return index
-def carrega_imagens_inimigo(screen, mago, inimigo, FRAME, INIMIGO_VIVO):
+def carrega_imagens_inimigo(screen, mago, inimigo, FRAME):
     
-    if INIMIGO_VIVO:
+    if inimigo.esta_vivo:
         if (inimigo.x-(mago.x-100)) > 200 and not inimigo.atacar:
             inimigo.direcao = 'tras'
             index = anima_sprite_inimigo(inimigo.sprite_anda_f, FRAME)
@@ -40,8 +40,8 @@ def carrega_imagens_inimigo(screen, mago, inimigo, FRAME, INIMIGO_VIVO):
                 screen.blit(inimigo.sprite_ataque_t[index], (inimigo.x-(mago.x-100), inimigo.y-50))
             inimigo.atacar = False
 
-def carrega_imagens_lutador(screen, mago, lutador, FRAME,VIVO_INIMIGO, LUTADOR_SOFREU_DANO):
-    if VIVO_INIMIGO:
+def carrega_imagens_lutador(screen, mago, lutador, FRAME, LUTADOR_SOFREU_DANO):
+    if lutador.esta_vivo:
             if (lutador.x-(mago.x)) > 250 and not lutador.atacar:
                 lutador.direcao = 'tras'
                 index_lutador = anima_sprite_inimigo(lutador.sprite_anda_f, FRAME)

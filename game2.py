@@ -1,13 +1,12 @@
 import pygame
-import pytmx
 import time
 from carrega_sprites.desenha_na_tela import *
 from variaveis_gravidade_pulo import *
 from pygame.locals import *
-from pytmx.util_pygame import load_pygame
 from classes import *
 from variaveis_global import *
-from fase2 import *
+from carrega_mapas import *
+
 pygame.init()
 screen = pygame.display.set_mode((1200, 600))
 mago = Mago(POSICAO_INICIAL_X, POSICAO_INICIAL_Y, [], 100)
@@ -27,7 +26,7 @@ interface.carrega_sprites()
 
 
 def reseta_jogo():
-    global POSICAO_INICIAL_X, POSICAO_INICIAL_Y, POSICAO_LUTADOR_X_INICIAL, POSICAO_LUTADOR_Y_INICIAL, ESTADO_JOGO, POS_INIMIGOX, INIMIGO_VIVO, VIVO_INIMIGO
+    global POSICAO_INICIAL_X, POSICAO_INICIAL_Y, POSICAO_LUTADOR_X_INICIAL, POSICAO_LUTADOR_Y_INICIAL, ESTADO_JOGO, POS_INIMIGOX
     mago.vida = 100
     lutador.vida = 100
     inimigo.vida = 100
@@ -37,79 +36,42 @@ def reseta_jogo():
     lutador.y = POSICAO_LUTADOR_Y_INICIAL
     inimigo.x = POS_INIMIGOX
     inimigo.y = POS_INIMIGOX
-    INIMIGO_VIVO =True
-    VIVO_INIMIGO = True
+    inimigo.esta_vivo =True
+    lutador.esta_vivo = True
     ESTADO_JOGO = 'jogando'
-    
-def desenha_mapa(surface, tm, offset_x, scale=0.5):
-    tw = int(tm.tilewidth * scale)
-    th = int(tm.tileheight * scale)
-    for layer in tm.visible_layers:
-        if layer.name != "colisor_piso":  # Ignore the collision layer for regular tile drawing
-            if isinstance(layer, pytmx.TiledTileLayer):
-                for x, y, gid in layer:
-                    tile = tm.get_tile_image_by_gid(gid)
-                    if tile:
-                        tile = pygame.transform.scale(tile, (tw, th))
-                        surface.blit(tile, ((x * tw) - offset_x, y * th))
 
 
+def colisao(tm, offset_x, scale=0.5):
+    global ACELERACAO_Y,PULANDO, EM_CIMA_PISOS_ELEVADOS, BLOCO_CHAO, ACELERACAO_Y_INIMIGO, ACELERACAO_Y_LUTADOR
+    for rect in tm.colisor_pisos_chao:
+        scaled_rect = pygame.Rect(
+            (rect.x * scale - offset_x), rect.y * scale, rect.width * scale, rect.height * scale)
+       
+        if mago.rec.colliderect(scaled_rect):
+            mago.rec.bottom = scaled_rect.top
+            BLOCO_CHAO = scaled_rect.top
+            mago.y = mago.rec.y
+            ACELERACAO_Y = 8
+            PULANDO = False
+            EM_CIMA_PISOS_ELEVADOS = False
 
-def carrega_mapa(filename):
-    tm = load_pygame(filename)
-
-    tm.colisor_pisos_chao = []
-    collision_layer = tm.get_layer_by_name("colisor_chao")
-    for x, y, gid in collision_layer:
-        if gid:
-            rect = pygame.Rect(x * tm.tilewidth, y *
-                               tm.tileheight, tm.tilewidth, tm.tileheight)
-            tm.colisor_pisos_chao.append(rect)
-
-    tm.colisor_pisos_elevados = []
-    collision_layer_elevado = tm.get_layer_by_name("colisor_elevado")
-    for x, y, gid in collision_layer_elevado:
-        if gid:
-            rect3 = pygame.Rect(x * tm.tilewidth, y *
-                                tm.tileheight, tm.tilewidth, tm.tileheight)
-            tm.colisor_pisos_elevados.append(rect3)
-
-    tm.piso_final_elevado = []
-    colisor_piso_elevado_final = tm.get_layer_by_name("colisor_fim_elevado")
-    for x, y, gid in colisor_piso_elevado_final:
-        if gid:
-            rect4 = pygame.Rect(x * tm.tilewidth, y *
-                                tm.tileheight, tm.tilewidth, tm.tileheight)
-            tm.piso_final_elevado.append(rect4)
-
-    tm.piso_inicio_elevado = []
-    colisor_piso_inicio_elevado = tm.get_layer_by_name(
-        "colisor_inicio_elevado")
-    for x, y, gid in colisor_piso_inicio_elevado:
-        if gid:
-            rect5 = pygame.Rect(x * tm.tilewidth, y *
-                                tm.tileheight, tm.tilewidth, tm.tileheight)
-            tm.piso_inicio_elevado.append(rect5)
-
-    tm.portal = []
-    portal = tm.get_layer_by_name('portal')
-    for x, y, gid in portal:
-        if gid:
-            rect6 = pygame.Rect(x * tm.tilewidth, y *
-                                tm.tileheight, tm.tilewidth, tm.tileheight)
-            tm.portal.append(rect6)
-
-    return tm
-
-
+        if lutador.rec.colliderect(scaled_rect):
+            lutador.rec.bottom = scaled_rect.top
+            lutador.y = lutador.rec.y
+            ACELERACAO_Y_LUTADOR = 8
+            
+        if inimigo.rec.colliderect(scaled_rect):
+            inimigo.rec.bottom = scaled_rect.top
+            inimigo.y = inimigo.rec.y
+            ACELERACAO_Y_INIMIGO = 8
 
 def colide_portal(tm, offset_x, scale=0.5):
-    global  ACELERACAO_Y,PULANDO, EM_CIMA_PISOS_ELEVADOS, BLOCO_CHAO, PASSOU
+    global  ACELERACAO_Y,PULANDO, EM_CIMA_PISOS_ELEVADOS, BLOCO_CHAO, ESTADO_JOGO
     for rect in tm.portal:
         scaled_rect = pygame.Rect(
             (rect.x * scale - offset_x), rect.y * scale, rect.width * scale, rect.height * scale)
         if mago.rec.colliderect(scaled_rect):
-            PASSOU = True
+            ESTADO_JOGO = 'passou de fase'
             
 
 def colisao_pisos_elevados( tm, offset_x, scale=0.5):
@@ -135,39 +97,16 @@ def colisao_pisos_baixos(surface,tm, offset_x, scale=0.5):
     for rect in tm.piso_inicio_elevado:
         scaled_rect = pygame.Rect(
             (rect.x * scale - offset_x), rect.y * scale, rect.width * scale, rect.height * scale)
-   
+        
         if mago.rec.colliderect(scaled_rect):
-           
+            print(BLOCO_CHAO)
             mago.rec.bottom= BLOCO_CHAO
             mago.y = mago.rec.y
             ACELERACAO_Y = 5
             PULANDO = False
             EM_CIMA_PISOS_ELEVADOS = False
 
-def colisao(tm, offset_x, scale=0.5):
-    global ACELERACAO_Y,PULANDO, EM_CIMA_PISOS_ELEVADOS, BLOCO_CHAO, ACELERACAO_Y_INIMIGO, ACELERACAO_Y_LUTADOR
-    for rect in tm.colisor_pisos_chao:
-        scaled_rect = pygame.Rect(
-            (rect.x * scale - offset_x), rect.y * scale, rect.width * scale, rect.height * scale)
-       
-        if mago.rec.colliderect(scaled_rect):
-            mago.rec.bottom = scaled_rect.top
-            BLOCO_CHAO = scaled_rect.top
-            mago.y = mago.rec.y
-            ACELERACAO_Y = 8
-            PULANDO = False
-            EM_CIMA_PISOS_ELEVADOS = False
 
-        if lutador.rec.colliderect(scaled_rect):
-            lutador.rec.bottom = scaled_rect.top
-            lutador.y = lutador.rec.y
-            ACELERACAO_Y_LUTADOR = 8
-            
-        if inimigo.rec.colliderect(scaled_rect):
-            inimigo.rec.bottom = scaled_rect.top
-            inimigo.y = inimigo.rec.y
-            ACELERACAO_Y_INIMIGO = 8
-            
 
 def limita_posicao_personagem(x, y, tm, window_width, window_height):
     # Calcula a largura máxima do mapa ajustada pela escala
@@ -298,8 +237,8 @@ def barra_vida_mago(screen):
                 ESTADO_JOGO = 'GAMEOVER'
 
 def barra_vida_lutador(screen):
-    global VIVO_INIMIGO, TIPO_INIMIGO
-    if VIVO_INIMIGO:
+    
+    if lutador.esta_vivo:
         
         screen.blit(lutador.borda_vida,(lutador.x-(mago.x-100), lutador.y+10))
         if lutador.vida == 100:
@@ -317,11 +256,11 @@ def barra_vida_lutador(screen):
         elif lutador.vida == 10:
             screen.blit(lutador.bloco_vida,(lutador.x-(mago.x-90), lutador.y+11))
         elif lutador.vida < 0:
-            VIVO_INIMIGO = False
+            lutador.esta_vivo = False
 
 def barra_de_vida_inimigo(screen):
-    global INIMIGO_VIVO
-    if INIMIGO_VIVO:
+
+    if inimigo.esta_vivo:
         
         screen.blit(inimigo.borda_vida,(inimigo.x-(mago.x-100), inimigo.y-15))
         if inimigo.vida == 100:
@@ -339,7 +278,7 @@ def barra_de_vida_inimigo(screen):
         elif inimigo.vida == 10:
             screen.blit(inimigo.bloco_vida,(inimigo.x-(mago.x-90), inimigo.y-11))
         elif inimigo.vida < 0:
-            INIMIGO_VIVO = False
+            inimigo.esta_vivo = False
 
 def anima_lutador(sprite):
     index = (FRAME//10) % len(sprite)
@@ -355,7 +294,7 @@ def anima_ataque_mago(sprite_ataque):
     return index
 
 def combate(surface):
-    global DANO, DANO_MAGICO_1, LUTADOR_SOFREU_DANO, VIVO_INIMIGO,INIMIGO_VIVO, SOFREU_DANO_INIMIGO,BLOCO_CHAO, PULANDO
+    global DANO, DANO_MAGICO_1, LUTADOR_SOFREU_DANO, SOFREU_DANO_INIMIGO,BLOCO_CHAO, PULANDO
     tempo_atual = time.time()
     pygame.draw.rect(surface, (255,0,0), lutador.rec, 2)
     pygame.draw.rect(surface, (255,0,0), inimigo.rec, 2)
@@ -364,7 +303,7 @@ def combate(surface):
     if inimigo.rec.colliderect(mago.rec):
         inimigo.atacar = True
     if mago.ataque1_rec.colliderect(inimigo.rec):
-        if INIMIGO_VIVO and mago.atacando:
+        if inimigo.esta_vivo and mago.atacando:
             inimigo.vida -= DANO_MAGICO_1
             print(inimigo.vida)
             SOFREU_DANO_INIMIGO =  True
@@ -373,26 +312,25 @@ def combate(surface):
     if lutador.rec.colliderect(mago.rec):
         lutador.atacar = True
     if mago.ataque1_rec.colliderect(lutador.rec):
-        if VIVO_INIMIGO and mago.atacando:
+        if lutador.esta_vivo and mago.atacando:
             lutador.vida -= DANO_MAGICO_1
             LUTADOR_SOFREU_DANO =  True
         mago.reseta_ataque()
     if lutador.rec_ataque_t.colliderect(mago.rec) and lutador.atacar and (tempo_atual - mago.ultimo_dano) > mago.cooldown:
-        if VIVO_INIMIGO:
+        if lutador.esta_vivo:
             mago.vida -= DANO
             mago.ultimo_dano = tempo_atual
     if inimigo.rec_ataque_t.colliderect(mago.rec) and inimigo.atacar and (tempo_atual - mago.ultimo_dano) > mago.cooldown:
-        if INIMIGO_VIVO:
+        if inimigo.esta_vivo:
             mago.vida -= DANO
             mago.ultimo_dano = tempo_atual
 
+
 def main():
-    global PASSOU,POS_INIMIGOY, POS_INIMIGOX, clock, G, F,T, ACELERACAO_Y, VELOCIDADE,PULANDO, ALTURA_MAX_PULO, FRAME, VIVO_INIMIGO, LUTADOR_SOFREU_DANO,POS_INIMIGOY, ESTADO_JOGO
-    
-    
-    tm = carrega_mapa('teste3.tmx')
-    
-    tm2 = carrega_mapa_fase2('mapa_fase2.tmx')
+    global FASE,POS_INIMIGOY, POS_INIMIGOX, clock, G, F,T, ACELERACAO_Y, VELOCIDADE,PULANDO, ALTURA_MAX_PULO, FRAME, LUTADOR_SOFREU_DANO,POS_INIMIGOY, ESTADO_JOGO
+
+    tm = carrega_mapa('mapa_1.tmx')
+    print('1')
     clock = pygame.time.Clock()
   
     while True:
@@ -414,14 +352,11 @@ def main():
 
             screen.fill((0, 0, 0))
            
-            if PASSOU:
-                desenha_mapa_fase2(screen, tm2, mago.x)
-                colisao_fase2(tm2, mago.x, mago)
-            
-            else:
+            if FASE == 'mapa_1':
                 desenha_mapa(screen, tm, mago.x )
                 colide_portal(tm, mago.x)
-            
+            elif FASE == 'mapa_2':
+                desenha_mapa(screen, tm, mago.x)
             x = inimigo.movimento()
             inimigo.x = x
             inimigo.y = POS_INIMIGOY
@@ -434,17 +369,19 @@ def main():
             mago.y = POSICAO_Y
             mago.carregar_posicao( mago.x, mago.y)
             lutador.carregar_posicao(lutador.x-(mago.x-100), lutador.y+10)
-            inimigo.carrega_posicao(inimigo.x-(mago.x-100), lutador.y)
-            if not PASSOU:
-                colisao(tm, mago.x)
+            inimigo.carrega_posicao(inimigo.x-(mago.x-100), inimigo.y)
+            if FASE == 'mapa_1':
                 colisao_pisos_elevados(tm, mago.x)
                 colisao_pisos_baixos(screen,tm, mago.x)
+            elif FASE == 'mapa_2':
+                colisao_pisos_lados(screen, tm, mago.x)
+            if inimigo.esta_vivo or lutador.esta_vivo:
                 combate(screen)
-            
+            colisao(tm, mago.x)
             carrega_imagens_mago(screen, mago, POSICAO_X_PERSONAGEM, FRAME)
-            carrega_imagens_lutador(screen, mago, lutador, FRAME,VIVO_INIMIGO, LUTADOR_SOFREU_DANO)
+            carrega_imagens_lutador(screen, mago, lutador, FRAME, LUTADOR_SOFREU_DANO)
             LUTADOR_SOFREU_DANO = False
-            carrega_imagens_inimigo(screen, mago, inimigo, FRAME, INIMIGO_VIVO)
+            carrega_imagens_inimigo(screen, mago, inimigo, FRAME)
 
             barra_vida_lutador(screen)
             barra_vida_mago(screen)
@@ -463,7 +400,7 @@ def main():
                     reseta_jogo()
 
         elif ESTADO_JOGO == 'INICIAR':
-
+            FASE = 'mapa_1'
             screen.blit(interface.comecar, (POS_COMECAR[0],POS_COMECAR[1]))
             screen.blit(interface.sair, (POS_SAIR[0], POS_SAIR[1]))
             interface.retangulo()
@@ -480,6 +417,10 @@ def main():
                 if interface.sair_rec.collidepoint(event.pos):
                     pygame.quit()
                     return
+        elif ESTADO_JOGO == 'passou de fase':
+            tm = carrega_mapa_fase2('mapa_2.tmx')
+            FASE = 'mapa_2'
+            reseta_jogo()
         pygame.display.update()
         clock.tick(60)
 if __name__ == "__main__":

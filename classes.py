@@ -144,6 +144,7 @@ class Lutador:
         self.bloco_vida = None
         self.borda_vida = None
         self.sofre_dano_sprite = None
+        self.esta_vivo = True
 
     def carrega_sprites(self):
         global SIZE_LUTADOR
@@ -250,7 +251,7 @@ class inimigo2:
         self.borda_vida = None
         self.bloco_vida =  None
         self.sofre_dano_sprite = None
-
+        self.esta_vivo = True
     def carrega_sprites(self):
         self.sprite_colisor = pygame.transform.scale(pygame.image.load(
             f'sprites/guerreiro_1/g_andando (1).png').convert_alpha(), (120, 100))
