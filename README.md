@@ -54,8 +54,3 @@ Me chamo Alan, sou estudante de Ciências da Computação na Universidade Federa
 
 - **Email:** alanbrunomoraescosta18@hotmail.com
 - **LinkedIn:** [Alan's LinkedIn](https://www.linkedin.com/in/alan-morais-4861322b0)
-
-<<<<<<< HEAD
-
-=======
->>>>>>> 99d834d50c3f24b033b92dd2480b4283f0c5452b
